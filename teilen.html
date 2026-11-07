@@ -27,8 +27,8 @@
 <body>
 <main>
   <h1>📘 Auf Facebook posten</h1>
-  <p>Ein Tipp auf den Knopf kopiert den ganzen Text und öffnet Facebook. Dort nur noch
-     ins Textfeld <b>tippen → Einfügen → Posten</b>.</p>
+  <p>Ein Tipp auf den Knopf kopiert den ganzen Text und öffnet Facebook. Dort oben auf
+     <b>„Was machst du gerade?“</b> tippen → <b>Einfügen</b> → <b>Posten</b>.</p>
   <button id="los" disabled>📋 Kopieren &amp; Facebook öffnen</button>
   <div id="status"></div>
   <pre id="text">Text wird geladen …</pre>
@@ -38,11 +38,10 @@
   const knopf = document.getElementById("los");
   const status = document.getElementById("status");
   const vorschau = document.getElementById("text");
-  let text = "", link = "";
+  let text = "";
 
   async function lesen() {
     const h = new URLSearchParams(location.hash.slice(1));
-    link = h.get("u") || "";
     text = h.get("t") || "";
     const z = h.get("z");
     if (z) {
@@ -76,8 +75,17 @@
     const ok = await kopieren(text);
     status.textContent = ok ? "✅ Kopiert – Facebook öffnet sich …"
                             : "⚠️ Kopieren ging nicht – Text unten lange drücken und kopieren.";
-    const ziel = "https://www.facebook.com/sharer/sharer.php?u=" +
-                 encodeURIComponent(link || "https://www.facebook.com");
+    // Nackter Post: Facebook ohne angehängten Artikel öffnen (am Handy direkt die App)
+    const ua = navigator.userAgent;
+    let ziel = "https://www.facebook.com/";
+    if (/Android/i.test(ua)) {
+      ziel = "intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;" +
+             "package=com.facebook.katana;S.browser_fallback_url=" +
+             encodeURIComponent("https://m.facebook.com/") + ";end";
+    } else if (/iPhone|iPad|iPod/i.test(ua)) {
+      ziel = "fb://feed";
+      setTimeout(() => { location.href = "https://m.facebook.com/"; }, 1800);
+    }
     setTimeout(() => { location.href = ziel; }, ok ? 400 : 2500);
   });
 
