@@ -73,12 +73,13 @@
 
   knopf.addEventListener("click", async () => {
     const ok = await kopieren(text);
-    status.textContent = ok ? (IG ? "✅ Kopiert – Instagram öffnet sich …" : "✅ Kopiert – Facebook öffnet sich …")
+    status.textContent = ok ? (IG ? "✅ Kopiert – " + NAME + " öffnet sich …" : "✅ Kopiert – Facebook öffnet sich …")
                             : "⚠️ Kopieren ging nicht – Text unten lange drücken und kopieren.";
     // Nackter Post: Facebook ohne angehängten Artikel öffnen (am Handy direkt die App)
     const ua = navigator.userAgent;
-    const app = IG ? { paket: "com.instagram.android", web: "https://www.instagram.com/", ios: "instagram://app" }
-                   : { paket: "com.facebook.katana", web: "https://m.facebook.com/", ios: "fb://feed" };
+    const app = ZIEL === "tt" ? { paket: "com.zhiliaoapp.musically", web: "https://www.tiktok.com/", ios: "snssdk1233://" }
+              : ZIEL === "ig" ? { paket: "com.instagram.android", web: "https://www.instagram.com/", ios: "instagram://app" }
+              : { paket: "com.facebook.katana", web: "https://m.facebook.com/", ios: "fb://feed" };
     let ziel = IG ? app.web : "https://www.facebook.com/";
     if (/Android/i.test(ua)) {
       ziel = "intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;" +
@@ -90,15 +91,18 @@
     setTimeout(() => { location.href = ziel; }, ok ? 400 : 2500);
   });
 
-  const IG = new URLSearchParams(location.hash.slice(1)).get("ziel") === "ig";
+  const ZIEL = new URLSearchParams(location.hash.slice(1)).get("ziel") || "fb";
+  const IG = ZIEL === "ig" || ZIEL === "tt";
+  const NAME = ZIEL === "tt" ? "TikTok" : "Instagram";
   if (IG) {
-    document.title = "Auf Instagram posten";
-    document.querySelector("h1").textContent = "📸 Auf Instagram posten";
+    document.title = "Auf " + NAME + " posten";
+    document.querySelector("h1").textContent = (ZIEL === "tt" ? "🎵" : "📸") + " Auf " + NAME + " posten";
     document.querySelector("main p").innerHTML = "Bild vorher in Telegram speichern (⋮ → In Galerie speichern). " +
-      "Dann den Knopf drücken: Text wird kopiert und Instagram öffnet sich. Dort <b>＋</b> → Bild wählen → " +
+      "Dann den Knopf drücken: Text wird kopiert und " + NAME + " öffnet sich. Dort <b>＋</b> → Bild wählen → " +
       "<b>Einfügen</b> → <b>Teilen</b>.";
-    knopf.textContent = "📋 Kopieren & Instagram öffnen";
-    knopf.style.background = "linear-gradient(90deg,#f58529,#dd2a7b,#8134af)";
+    knopf.textContent = "📋 Kopieren & " + NAME + " öffnen";
+    knopf.style.background = ZIEL === "tt" ? "linear-gradient(90deg,#25f4ee,#000,#fe2c55)"
+                                           : "linear-gradient(90deg,#f58529,#dd2a7b,#8134af)";
   }
 
   lesen().then(() => {
