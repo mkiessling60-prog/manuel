@@ -73,21 +73,33 @@
 
   knopf.addEventListener("click", async () => {
     const ok = await kopieren(text);
-    status.textContent = ok ? "✅ Kopiert – Facebook öffnet sich …"
+    status.textContent = ok ? (IG ? "✅ Kopiert – Instagram öffnet sich …" : "✅ Kopiert – Facebook öffnet sich …")
                             : "⚠️ Kopieren ging nicht – Text unten lange drücken und kopieren.";
     // Nackter Post: Facebook ohne angehängten Artikel öffnen (am Handy direkt die App)
     const ua = navigator.userAgent;
-    let ziel = "https://www.facebook.com/";
+    const app = IG ? { paket: "com.instagram.android", web: "https://www.instagram.com/", ios: "instagram://app" }
+                   : { paket: "com.facebook.katana", web: "https://m.facebook.com/", ios: "fb://feed" };
+    let ziel = IG ? app.web : "https://www.facebook.com/";
     if (/Android/i.test(ua)) {
       ziel = "intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;" +
-             "package=com.facebook.katana;S.browser_fallback_url=" +
-             encodeURIComponent("https://m.facebook.com/") + ";end";
+             "package=" + app.paket + ";S.browser_fallback_url=" + encodeURIComponent(app.web) + ";end";
     } else if (/iPhone|iPad|iPod/i.test(ua)) {
-      ziel = "fb://feed";
-      setTimeout(() => { location.href = "https://m.facebook.com/"; }, 1800);
+      ziel = app.ios;
+      setTimeout(() => { location.href = app.web; }, 1800);
     }
     setTimeout(() => { location.href = ziel; }, ok ? 400 : 2500);
   });
+
+  const IG = new URLSearchParams(location.hash.slice(1)).get("ziel") === "ig";
+  if (IG) {
+    document.title = "Auf Instagram posten";
+    document.querySelector("h1").textContent = "📸 Auf Instagram posten";
+    document.querySelector("main p").innerHTML = "Bild vorher in Telegram speichern (⋮ → In Galerie speichern). " +
+      "Dann den Knopf drücken: Text wird kopiert und Instagram öffnet sich. Dort <b>＋</b> → Bild wählen → " +
+      "<b>Einfügen</b> → <b>Teilen</b>.";
+    knopf.textContent = "📋 Kopieren & Instagram öffnen";
+    knopf.style.background = "linear-gradient(90deg,#f58529,#dd2a7b,#8134af)";
+  }
 
   lesen().then(() => {
     vorschau.textContent = text || "Kein Text gefunden.";
